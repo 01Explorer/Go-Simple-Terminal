@@ -4,8 +4,47 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+type keyMap struct {
+  Pause key.Binding
+  Reset key.Binding
+  Help key.Binding
+  Quit key.Binding
+}
+
+func (k keyMap) ShortHelp() []key.Binding {
+ return []key.Binding{k.Help, k.Quit} 
+}
+
+func (k keyMap) FullHelp() [][]key.Binding {
+  return [][]key.Binding{
+    {k.Pause, k.Reset},
+    {k.Help, k.Quit},
+  }
+}
+
+var keys = keyMap {
+  Pause: key.NewBinding(
+    key.WithKeys("p"),
+    key.WithHelp("P", "Pause"),
+  ),
+  Reset: key.NewBinding(
+    key.WithKeys("r"),
+    key.WithHelp("R", "Reset timer"),
+  ),
+  Help: key.NewBinding(
+    key.WithKeys("?"),
+    key.WithHelp("?", "Toggle help"),
+  ),
+  Quit: key.NewBinding(
+    key.WithKeys("q", "esc", "ctrl+c"),
+    key.WithHelp("q/esc/ctrl+c", "quit"),
+  ),
+}
 
 type TickMsg struct{}
 
@@ -24,6 +63,8 @@ type Model struct {
 	Interval time.Duration
   err string
   title string
+  keys keyMap
+  help help.Model
 }
 
 func New() Model {
@@ -31,6 +72,8 @@ func New() Model {
 		Interval: time.Second,
     max: 1 * time.Minute,
     title: "Pomodoro",
+    keys: keys,
+    help: help.New(),
 	}
 }
 
@@ -84,11 +127,13 @@ func (m Model) Elapsed() time.Duration {
 func (m Model) View() string {
   var s string
   s = fmt.Sprintf("%s\n\n", m.title)
-  s += fmt.Sprintf("Ongoing Time -> %s / %s", m.d, m.max) 
+  s += fmt.Sprintf("Ongoing Time -> %s / %s\n\n", m.d, m.max) 
   if m.finished {
     s += "\n\nTime finished"
   }
-  return s
+
+  helpView := m.help.View(m.keys)
+  return s + helpView
 }
 
 func tick(d time.Duration) tea.Cmd {
@@ -99,6 +144,8 @@ func tick(d time.Duration) tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
   switch msg := msg.(type) {
+  case tea.WindowSizeMsg:
+    m.help.Width = msg.Width
   case StartStopMsg:
     m.running = msg.running
     m.finished = msg.finished
@@ -117,13 +164,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
     return m, tick(m.Interval)
   case tea.KeyMsg:
-    switch msg.Type {
-    case tea.KeyCtrlQ:
-      return m, tea.Quit
-    case tea.KeyCtrlP:
+    switch {
+    case key.Matches(msg, m.keys.Pause):
       return m, m.Toggle()
-    case tea.KeyCtrlR:
+    case key.Matches(msg, m.keys.Reset):
       return m, m.Reset()
+    case key.Matches(msg, m.keys.Help):
+      m.help.ShowAll = !m.help.ShowAll
+    case key.Matches(msg, m.keys.Quit):
+      return m, tea.Quit
     }
   }
 
