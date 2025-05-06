@@ -22,12 +22,15 @@ type Model struct {
 	running  bool
   finished bool 
 	Interval time.Duration
+  err string
+  title string
 }
 
 func New() Model {
 	return Model{
 		Interval: time.Second,
-    max: 2 * time.Minute,
+    max: 1 * time.Minute,
+    title: "Pomodoro",
 	}
 }
 
@@ -79,13 +82,13 @@ func (m Model) Elapsed() time.Duration {
 }
 
 func (m Model) View() string {
+  var s string
+  s = fmt.Sprintf("%s\n\n", m.title)
+  s += fmt.Sprintf("Ongoing Time -> %s / %s", m.d, m.max) 
   if m.finished {
-    var s string
-    s = m.d.String()
     s += "\n\nTime finished"
-   return s 
   }
-  return m.d.String()
+  return s
 }
 
 func tick(d time.Duration) tea.Cmd {
@@ -95,7 +98,6 @@ func tick(d time.Duration) tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-  fmt.Println(msg)
   switch msg := msg.(type) {
   case StartStopMsg:
     m.running = msg.running
