@@ -6,9 +6,12 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/term"
 	"github.com/creack/pty"
 )
 
@@ -80,6 +83,28 @@ return m, nil
  }
 
 func main() {
+  docStyle := lipgloss.NewStyle().Padding(1, 2, 1, 2)
+  physicalWidth, _, _ := term.GetSize(os.Stdout.Fd())
+  doc := strings.Builder{}
+
+  row := lipgloss.JoinHorizontal(
+    lipgloss.Top,
+    activeTab.Render("Lip Gloss"),
+    tab.Render("Blush"),
+    tab.Render("Eye Shadow"),
+    tab.Render("Mascara"),
+    tab.Render("Foundation"),
+  )
+  gap := tabGap.Render(strings.Repeat(" ", max(0, 80 - lipgloss.Width(row) - 2)))
+  row = lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
+  doc.WriteString(row + "\n\n")
+
+  if physicalWidth > 0 {
+    docStyle = docStyle.MaxWidth(physicalWidth)
+  }
+
+  fmt.Println(docStyle.Render(doc.String()))
+
   p := tea.NewProgram(New())
   if _, err := p.Run(); err != nil {
     fmt.Printf("Alas, there's been an error: %v", err)
