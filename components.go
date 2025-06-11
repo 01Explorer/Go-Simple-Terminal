@@ -17,9 +17,6 @@ func CenterSquareWithText(appWidth, appHeight, outerWidth, outerHeight, innerWid
 
 func CenterTabsAboveSquare(appWidth, appHeight, squareWidth, squareHeight int, tabs, square string) string {
   squareLeft := (appWidth - squareWidth) / 2
-  //squareTop := (appHeight - squareHeight) / 2
-
-  //tabsTop := squareTop - 3
 
   tabsStyle := lipgloss.NewStyle().
   MarginLeft(squareLeft)
