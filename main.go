@@ -40,14 +40,6 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd){
   return m, cmd 
 }
 
-func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
-  border := lipgloss.RoundedBorder()
-  border.BottomLeft = left
-  border.Bottom = middle
-  border.BottomRight = right
-  return border
-}
-
 var (
 	docStyle          = lipgloss.NewStyle().Padding(1, 2, 1, 2)
 	highlightColor    = lipgloss.Color("#E95420")
@@ -62,8 +54,6 @@ func (m MainModel) View() string {
   outerHeight := int(float64(m.height) * 0.8)
   innerWidth := outerWidth - 4
   innerHeight := 15
-
-  // doc := strings.Builder{}
 
   var renderedTabs []string
 
@@ -87,9 +77,6 @@ func (m MainModel) View() string {
 
   row := lipgloss.JoinHorizontal(lipgloss.Left, renderedTabs...)
   activeTab := m.TabContent[m.activeTab].View()
-  // doc.WriteString(row)
-  // doc.WriteString("\n")
-  // doc.WriteString(m.TabContent[m.activeTab].View())
 
   mainSquare := CenterSquareWithText(m.width, m.height, outerWidth, outerHeight, innerWidth, innerHeight, activeTab)
 
